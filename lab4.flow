@@ -1,0 +1,36 @@
+import material/material;
+import ds/tree;
+import ds/array;
+
+/*Дан массив целых чисел [n_1,...,n_k] и число m. Найти все пары индексов (i, j) такие, что n_i + n_j == m. 
+Сигнатура функции: inds(a : [int], m : int) -> [Pair<int, int>]. Усложнение: сделать эту функцию сложности O(n log(n)), а не O(n^2). 
+Использовать функции: foldi, makeTree, setTree, lookupTree.*/
+
+
+inds(arr : [int], m : int) -> [Pair<int, int>] {
+    tree : Tree<int, [int]> = foldi(arr, makeTree(), \i, tr, x -> {
+        setTree(tr, x, [i]);
+    });
+    
+    foldi(arr, [], \i, pairs, n_i -> {
+        switch(lookupTree(tree, m - n_i)){
+            Some(temp): foldi(temp, pairs, \j, buf, x ->{
+                            if(i <= x){
+                                concat(buf, [Pair(i, x)]);
+                            } else{
+                                buf
+                            }
+                        });
+            None(): pairs
+        }   
+    });
+
+}
+
+main(){
+    m : int = 9;
+    arr : [int] = [1, 5, 6, -3, 15, 9, 0, -7, 4, 8, 1];
+    println(inds(arr, m));
+
+    quit(0);
+}

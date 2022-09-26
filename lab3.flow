@@ -1,0 +1,54 @@
+ import material/material;
+
+/*Написать функцию, fib(n : int) -> [int], вычисляющую n первых чисел фиббоначчи: 0, 1, 1, 2, 3, 5, .... 
+Сделать ее а)рекурсивной    б)с хвостовой рекурсией     в)с использованием ссылок на массив, сложности O(n). 
+Использовать: fold, concat, refArrayPush*/
+
+fib1(n : int) -> [int];
+fib2(n : int, arr : [int]) -> [int];
+
+
+fib1(n) {
+    if (n == 1) { 
+        [0]
+    } 
+    else if (n == 2) { 
+        [0,1]
+    } 
+    else {
+        arr = fib1(n-1);
+        concat(arr, [fold(subrange(arr, n-3, 2), 0, \x,y -> x+y)])
+    }
+}
+
+fib2(n, arr){
+    if( n <= 1 ){
+        arr
+    } else {
+        len = length(arr);
+        temp = concat(arr, [fold(subrange(arr, len-2, 2), 0, \x,y -> x+y)]);
+        fib2(n-1, temp);
+    }
+}
+
+fib3(n : int, arr : ref [int]) -> [int]{
+    if(n <= 1){
+       ^arr
+    }
+    else{
+        len = length(^arr);
+        refArrayPush(arr, ^arr[len-1] + ^arr[len-2]);
+        fib3(n-1, arr);
+        ^arr
+    }
+}
+
+ main(){
+    n : int = 10;
+    println(fib1(n));
+    println(fib2(n, [0,1]));
+
+    println(fib3(n-1, ref[0,1]));
+    
+    quit(0);
+ }
