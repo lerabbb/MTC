@@ -1,6 +1,0 @@
-main(){
-    expStr : string = getUrlParameter("exp");
-
-
-
-}

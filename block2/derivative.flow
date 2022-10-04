@@ -1,0 +1,49 @@
+import mtk_labs/block2/exps;
+
+export {
+    derivative(tree : flow) -> flow;
+}
+
+derivative(tree : flow) -> flow {
+    Switch(tree){
+        Sum(e1, e2):{
+            de1 = derivative(e1);
+            de2 = derivative(e2);
+            Sum(de1, de2);
+        } 
+        Sub(e1, e2): {
+            de1 = derivative(e1);
+            de2 = derivative(e2);
+            Sub(de1, de2);
+        }
+        Mul(e1, e2): {
+            de1 = derivative(e1);
+            de2 = derivative(e2);
+            Sum(Mul(de1, e2), Mul(e1, de2));
+        }
+        Div(e1, e2): {
+            de1 = derivative(e1);
+            de2 = derivative(e2);
+            Div(Sub(Mul(de1, e2),Mul(e1, de2)), Pow(e2, 2));
+        }
+        Pow(e1, e2): {
+            
+        }
+
+        Int(e): {
+
+        }
+        Double(e): {
+            
+        }
+        NegI(e): {
+            
+        }
+        NegD(e): {
+            
+        }
+
+
+
+    }
+}

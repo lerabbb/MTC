@@ -1,0 +1,120 @@
+import lingo/pegcode/driver;
+import math/math;
+import material/material;
+import mtk_labs/block2/exps;
+
+export{
+    simpleExp(tree : flow) -> flow;
+}
+
+simpleExp(tree : flow) -> flow {
+    switch(tree : flow){
+        Sum(e1, e2): {
+            se1 = simpleExp(e1);
+            se2 = simpleExp(e2);
+            if(se1 == Int(0) && se2 == Int(0)){
+                Int(0);
+            } else if(se1 == Int(0)){
+                se2;
+            } else if(se2 == Int(0)){
+                se1;
+            } else{
+                Sum(se1, se2);
+            }
+        }
+        Sub(e1, e2): {
+            se1 = simpleExp(e1);
+            se2 = simpleExp(e2);
+            if(se1 == se2){
+                Int(0);
+            } else if(se1 == Int(0)){
+                NegI(se2);
+            } else if(se2 == Int(0)){
+                se1;
+            } else {
+                Sub(se1, se2);
+            }
+        }
+        Mul(e1, e2): {
+            se1 = simpleExp(e1);
+            se2 = simpleExp(e2);
+            if(se1 == Int(0) || se2 == Int(0)){
+                Int(0);
+            } else if(se1 == Int(1)){
+                se2;
+            } else if(se2 == Int(1)){
+                se1;
+            } /*else if(se1 == se2){
+                Pow(se1, 2);
+            }*/
+             else{
+                Mul(se1, se2);
+            }
+            //pow!!!!
+        }
+        Div(e1, e2): {
+            se1 = simpleExp(e1);
+            se2 = simpleExp(e2);
+            if(se1 == Int(0)){
+                Int(0);
+            } else if(se2 == Int(1)){
+                se1;
+            } else{
+                Div(se1, se2);
+            }
+        }
+        Pow(e1, e2): {
+            se1 = simpleExp(e1);
+            se2 = simpleExp(e2);
+            if(se2 == Int(1)){
+                se1;
+            } else if(se2 == Int(0)){
+                Int(1);
+            } else{ 
+                Pow(se1, se2);
+            }
+        }
+
+        Double(d): Double(d);
+        Int(i): Int(i);
+        Var(v): Var(v);
+        NegD(nd): {
+            se = simpleExp(nd);
+            if(se == Double(0.0)){
+                Double(0.0);
+            } else{
+                NegD(se);
+            }
+        } 
+        NegI(ni): {
+            se = simpleExp(ni);
+            if(se == Int(0)){
+                Int(0);
+            } else{
+                NegD(se);
+            }
+        }
+
+        Sin(e): {
+            se = simpleExp(e);
+            Sin(se);
+        }
+        Cos(e): {
+            se = simpleExp(e);
+            Cos(se);
+        }
+        Ln(e): {
+            se = simpleExp(e);
+            Ln(se);
+        }
+        Tg(e): {
+            se = simpleExp(e);
+            Tg(se);
+        }
+        Ctg(e): {
+            se = simpleExp(e);
+            Ctg(se);
+        }
+
+    }
+}
