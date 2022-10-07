@@ -5,17 +5,15 @@ export {
 }
 
 derivative(tree : flow) -> flow {
-    Switch(tree){
-        Sum(e1, e2):{
-            de1 = derivative(e1);
-            de2 = derivative(e2);
-            Sum(de1, de2);
-        } 
-        Sub(e1, e2): {
-            de1 = derivative(e1);
-            de2 = derivative(e2);
-            Sub(de1, de2);
-        }
+    switch(tree){
+        Int(e): Int(0);
+        Double(e): Int(0);
+        Var(e): Int(1);
+        
+        Ln(e): Ln(derivative(e));
+        Neg(e): Neg(derivative(e));
+        Sum(e1, e2): Sum(derivative(e1), derivative(e2));
+        Sub(e1, e2): Sub(derivative(e1), derivative(e2));
         Mul(e1, e2): {
             de1 = derivative(e1);
             de2 = derivative(e2);
@@ -24,26 +22,12 @@ derivative(tree : flow) -> flow {
         Div(e1, e2): {
             de1 = derivative(e1);
             de2 = derivative(e2);
-            Div(Sub(Mul(de1, e2),Mul(e1, de2)), Pow(e2, 2));
+            Div(Sub(Mul(de1, e2),Mul(e1, de2)), Pow(e2, Int(2)));
         }
-        Pow(e1, e2): {
-            
-        }
-
-        Int(e): {
-
-        }
-        Double(e): {
-            
-        }
-        NegI(e): {
-            
-        }
-        NegD(e): {
-            
-        }
-
-
-
+        Pow(u, v): {
+            du = derivative(u);
+            dv = derivative(v);
+            Mul(Mul(v, du), Pow(u, Sub(v, Int(1))));
+        } 
     }
 }

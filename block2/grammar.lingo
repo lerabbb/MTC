@@ -1,6 +1,4 @@
-exp = diff | func | const | var | pow | div | mul | sub | sum;
-diff = func:f ws "'" ws { Deriv(f) };
-func = pow | sin | cos | ln | tg | ctg;
+exp = ln | const | var | pow | div | mul | sub | sum | neg;
 
 sum = "(" ws exp:e1 ws "+" ws exp:e2 ws ")" ws { Sum(:e1, :e2) };
 mul = "(" ws exp:e1 ws "*" ws exp:e2 ws ")" ws { Mul(:e1, :e2) };
@@ -8,17 +6,13 @@ sub = "(" ws exp:e1 ws "-" ws exp:e2 ws ")" ws { Sub(:e1, :e2) };
 div = "(" ws exp:e1 ws "/" ws exp:e2 ws ")" ws { Div(:e1, :e2) };
 pow = "(" ws exp:e1 ws "^" ws exp:e2 ws ")" ws { Pow(:e1, :e2) };
 
-sin = "(" ws "sin" ws "(" ws exp:e ws ")" ws ")" ws { Sin(:e) };
-cos = "(" ws "cos" ws "(" ws exp:e ws ")" ws ")" ws { Cos(:e) };
-ln = "(" ws "ln" ws "(" ws exp:e ws ")" ws ")" ws { Ln(:e) }; 
-tg = "(" ws "tg" ws "(" ws exp:e ws ")" ws ")" ws { Tg(:e) };
-ctg = "(" ws "ctg" ws "(" ws exp:e ws ")" ws ")" ws { Ctg(:e) };
-
 const = negd | negi | double | int;
 var = char+ $c { Var($c) };
+ln = "ln" ws exp:e ws { Ln(:e) };
 
-negd = ("-" double) $nd { NegD(s2d($nd)) };
-negi = ("-" int) $ni { NegI(s2i($ni)) };
+neg = "-" ws exp:e ws { Neg(:e) };
+negd = ("-" double) $nd { Double(s2d($nd)) };
+negi = ("-" int) $ni { Int(s2i($ni)) };
 double = (digit+ "." digit+) $d { Double(s2d($d)) };
 int = digit+ $d { Int(s2i($d)) };
 

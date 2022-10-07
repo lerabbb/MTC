@@ -1,5 +1,5 @@
 export{
-    Exp ::= Diff, Sin, Cos, Ln, Tg, Ctg, NegD, NegI, Double, Int, Var, Pow, Div, Mul, Sum, Sub;
+    Exp ::= Ln, Neg, Double, Int, Var, Pow, Div, Mul, Sum, Sub;
         Mul : (e1 : Exp, e2 : Exp);
         Sum : (e1 : Exp, e2 : Exp);
         Int : (i : int);
@@ -9,13 +9,6 @@ export{
         Div : (e1 : Exp, e2 : Exp);
         Sub : (e1 : Exp, e2 : Exp);
         Double : (d : double);
-        NegD : (nd : double);
-        NegI : (ni : int);
-
-        Sin : (e : Exp);
-        Cos : (e : Exp);
-        Ln : (e : Exp);
-        Tg : (e : Exp);
-        Ctg : (e : Exp);
-        Diff : (e : Exp);
+        Neg : (e : Exp);
+        Ln : (e: Exp);
 }

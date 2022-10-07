@@ -2,21 +2,8 @@ import lingo/pegcode/driver;
 import math/math;
 import material/material;
 import mtk_labs/block2/simplifier;
-import mtk_labs/block2/exps;
-
-/*Exp ::= NegD, NegI, Double, Int, Var, Pow, Div, Mul, Sum, Sub;
-        Mul : (e1 : Exp, e2 : Exp);
-        Sum : (e1 : Exp, e2 : Exp);
-        Int : (i : int);
-        Var : (s : string);
-
-        Pow : (e1 : Exp, e2 : Exp);
-        Div : (e1 : Exp, e2 : Exp);
-        Sub : (e1 : Exp, e2 : Exp);
-        Double : (d : double);
-        NegD : (nd : double);
-        NegI : (ni : int);*/
-        
+import mtk_labs/block2/exps;      
+import mtk_labs/block2/derivative;  
 
 lingoGrammarOp : ref Maybe<[PegOp]> = ref None();
 lingoGrammar(){
@@ -38,19 +25,13 @@ astToStr(tree : flow) -> string{
         Div(e1, e2): "(" + astToStr(e1) + "/" + astToStr(e2) + ")";
         Sub(e1, e2): "(" + astToStr(e1) + "-" + astToStr(e2) + ")";
         Double(d): d2s(d);
-        NegD(nd): d2s(nd);
-        NegI(ni): i2s(ni);
-
-        Sin(e): "(sin(" + astToStr(e) + "))";
-        Cos(e): "(cos(" + astToStr(e) + "))";
-        Ln(e): "(ln(" + astToStr(e) + "))";
-        Tg(e): "(tg(" + astToStr(e) + "))";
-        Ctg(e): "(ctg(" + astToStr(e) + "))";
+        Neg(e): "(-" + astToStr(e) + ")";
+        Ln(e): "ln(" + astToStr(e) + ")";    
     }
 }
 
 evaluate(tree : flow) -> double{
-    switch(tree : Exp){
+    switch(tree){
         Sum(e1, e2): evaluate(e1) + evaluate(e2);
         Mul(e1, e2): evaluate(e1) * evaluate(e2);
         Int(i): i2d(i);
@@ -60,14 +41,8 @@ evaluate(tree : flow) -> double{
         Pow(e1, e2): dpow(evaluate(e1), evaluate(e2)); 
         Sub(e1, e2): evaluate(e1) - evaluate(e2); 
         Double(d): d;
-        NegD(nd): nd;
-        NegI(ni): i2d(ni);
-
-        Sin(e): sin(evaluate(e));
-        Cos(e): cos(evaluate(e));
-        Ln(e): log(evaluate(e));
-        Tg(e): tan(evaluate(e));
-        Ctg(e): cot(evaluate(e));
+        Neg(e): -evaluate(e);
+        ln(e): log(evaluate(e));
     }
 }
 
@@ -79,21 +54,32 @@ getValueForVar(var : string) -> double{
 
 main(){
     print("Enter text: ");
-    expStr : string = readUntil("\n");
+    
+    //5 task
+    expStr : string = readUntil("\n"); 
     expAst = strToAst(expStr);
-    simpleAst = simpleExp(expAst);
+    print("STRING TO AST: "); 
+    println(expAst); 
 
-    print("STRING TO AST: ");
-    println(expAst);
-
+    //6 task
     println("AST TO STRING: " + astToStr(expAst));
 
+    //7 task
+    value = evaluate(expAst);
+    println("VALUE = " + d2s(value));
+
+    //10 task
+    simpleAst = simpleExp(expAst);
     print("SIMPLIFIED AST: ");
     println(simpleAst);
     println("SIMPLIFIED EXP: " + astToStr(simpleAst));
 
-    //value = evaluate(expAst);
-    //println("VALUE = " + d2s(value));
+    //11 task;
+    diffAst = derivative(expAst);
+    simpleDifAst = simpleExp(diffAst);
+    print("DERIVATIVE AST: ");
+    println(simpleDifAst);
+    println("DERIVATIVE STR: " + astToStr(simpleDifAst));
 
     quit(0);
 }
