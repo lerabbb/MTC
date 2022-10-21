@@ -7,27 +7,37 @@ export{
     simpleExp(tree : flow) -> flow;
 }
 
+newPow(e : flow) -> flow;
+isPow(e : flow) -> bool;
+getBase(e : flow) -> flow;
+getPow(e : flow) -> flow;
+//isConst(e : flow) -> bool;
+
 simpleExp(tree : flow) -> flow {
     switch(tree){
         Sum(e1, e2): {
             se1 = simpleExp(e1);
             se2 = simpleExp(e2);
+            
             if(se1 == Int(0) && se2 == Int(0)){
-                Int(0);
-            } else if(se1 == Int(0)){
+               Int(0);
+            }
+            else if(se1 == Int(0)){
                 se2;
             } else if(se2 == Int(0)){
                 se1;
-            } else{
+            }  else{
                 Sum(se1, se2);
             }
         }
         Sub(e1, e2): {
             se1 = simpleExp(e1);
             se2 = simpleExp(e2);
+            
             if(se1 == se2){
                 Int(0);
-            } else if(se1 == Int(0)){
+            }
+             else if(se1 == Int(0)){
                 Neg(se2);
             } else if(se2 == Int(0)){
                 se1;
@@ -38,26 +48,49 @@ simpleExp(tree : flow) -> flow {
         Mul(e1, e2): {
             se1 = simpleExp(e1);
             se2 = simpleExp(e2);
+
             if(se1 == Int(0) || se2 == Int(0)){
-                Int(0);
-            } else if(se1 == Int(1)){
+              Int(0);
+            }
+             else if(se1 == Int(1)){
                 se2;
             } else if(se2 == Int(1)){
                 se1;
-            } /*else if(se1 == se2){
-                Pow(se1, 2);
-            }*/
-             else{
+            } else if(se1 == Int(-1)){
+                Neg(se2);
+            } else if(se2 == Int(-1)){
+                Neg(se1);
+            } else if(se1 == se2){
+                Pow(se1, Int(2));
+            }  else if(isPow(se1)){
+                base = simpleExp(getBase(se1));
+                pow = simpleExp(getPow(se1));
+                if(se2 == base){
+                    Pow(base, newPow(pow));
+                } else {
+                    Mul(se1, se2);
+                }
+            } else if(isPow(se2)){
+                base = simpleExp(getBase(se2));
+                pow = simpleExp(getPow(se2));
+                if(se1 == base){
+                    Pow(base, newPow(pow));
+                } else {
+                    Mul(se1, se2);
+                }
+            }
+            else{
                 Mul(se1, se2);
             }
-            //pow!!!!
         }
         Div(e1, e2): {
             se1 = simpleExp(e1);
             se2 = simpleExp(e2);
+           
             if(se1 == Int(0)){
                 Int(0);
-            } else if(se2 == Int(1)){
+            }
+             else if(se2 == Int(1)){
                 se1;
             } else{
                 Div(se1, se2);
@@ -87,6 +120,42 @@ simpleExp(tree : flow) -> flow {
         Double(d): Double(d);
         Int(i): Int(i);
         Var(v): Var(v);
-        Neg(e): Neg(e);
+        Neg(e): {
+            se = simpleExp(e);
+            if(se == Int(0)){
+                Int(0);
+            } else{
+                Neg(se);
+            }
+        }
+    }
+}
+
+getPow(e : flow) -> flow {
+    switch(e){
+        Pow(e1, e2): e2;
+        default: e;
+    }
+}
+getBase(e : flow) -> flow{
+    switch(e){
+        Pow(e1, e2): e1;
+        default: e;
+    }
+}
+
+isPow(e : flow) -> bool {
+    switch(e){
+        Pow(e1, e2): true;
+        default: false;
+    }
+}
+
+newPow(e : flow) -> flow{
+    se = simpleExp(e);
+    switch(se){
+        Int(val): Int(val + 1);
+        Double(val): Double(val + 1.0);
+        default: Sum(se, Int(1));
     }
 }

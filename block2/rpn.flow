@@ -1,9 +1,86 @@
 import lingo/pegcode/driver;
 import math/math;
+import ds/dlist;
 import material/material;
 import mtk_labs/block2/exps;
 
+export{
+    expToRpn(tree : flow) -> string;
+    rpnToExp(text : string) -> string;
+}
 
+rpnToExp(text : string) -> string {
+    temp = strSplit(text, " ");
+    stack : DList<string> = makeDList();
 
+    map(temp, \i -> {
+        if(i == "+"){
+            e2 = popFirstDList(stack);
+            e1 = popFirstDList(stack);
+            strE2 = e2 ?? e2 : " ";
+            strE1 = e1 ?? e1 : " ";
+            
+            unshiftDList(stack, "(" + strE1 + "+" + strE2 + ")" );
+        } 
+        else if(i == "-"){
+            e2 = popFirstDList(stack);
+            e1 = popFirstDList(stack);
+            strE2 = e2 ?? e2 : " ";
+            strE1 = e1 ?? e1 : " ";
+            
+            unshiftDList(stack, "(" + strE1 + "-" + strE2 + ")" );
+        } 
+        else if(i == "*"){
+            e2 = popFirstDList(stack);
+            e1 = popFirstDList(stack);
+            strE2 = e2 ?? e2 : " ";
+            strE1 = e1 ?? e1 : " ";
+            
+            unshiftDList(stack, "(" + strE1 + "*" + strE2 + ")" );
+        } 
+        else if(i == "/"){
+            e2 = popFirstDList(stack);
+            e1 = popFirstDList(stack);
+            strE2 = e2 ?? e2 : " ";
+            strE1 = e1 ?? e1 : " ";
+            
+            unshiftDList(stack, "(" + strE1 + "/" + strE2 + ")" );
+        }
+        else if(i == "^"){
+            e2 = popFirstDList(stack);
+            e1 = popFirstDList(stack);
+            strE2 = e2 ?? e2 : " ";
+            strE1 = e1 ?? e1 : " ";
+            
+            unshiftDList(stack, "(" + strE1 + "^" + strE2 + ")" );
+        }
+        else if(i == "ln"){
+            e = popFirstDList(stack);
+            strE = e ?? e : " ";
+            
+            unshiftDList(stack, "ln(" + strE + ")" );
+        }
+        else{
+            unshiftDList(stack, i);  //push i at the front of list
+        }
 
+    });
+    res = popFirstDList(stack);
+    res ?? res : " ";
+}
 
+expToRpn(tree : flow) -> string{
+    switch(tree){
+        Sum(e1, e2): expToRpn(e1) + " " + expToRpn(e2) + " +";
+        Sub(e1, e2): expToRpn(e1) + " " + expToRpn(e2) + " -";
+        Mul(e1, e2): expToRpn(e1) + " " + expToRpn(e2) + " *";
+        Div(e1, e2): expToRpn(e1) + " " + expToRpn(e2) + " /";
+        Pow(e1, e2): expToRpn(e1) + " " + expToRpn(e2) + " ^";
+        Var(e): e;
+        Int(e): i2s(e);
+        Double(e): d2s(e);
+
+        Neg(e): expToRpn(e) + " - ";
+        Ln(e): expToRpn(e) + " ln ";
+    }
+}

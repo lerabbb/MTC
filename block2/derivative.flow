@@ -4,13 +4,15 @@ export {
     derivative(tree : flow) -> flow;
 }
 
+isVar(e : flow) -> bool;
+
 derivative(tree : flow) -> flow {
     switch(tree){
         Int(e): Int(0);
         Double(e): Int(0);
         Var(e): Int(1);
         
-        Ln(e): Ln(derivative(e));
+        Ln(e): Mul(Div(Int(1), e), derivative(e));
         Neg(e): Neg(derivative(e));
         Sum(e1, e2): Sum(derivative(e1), derivative(e2));
         Sub(e1, e2): Sub(derivative(e1), derivative(e2));
@@ -27,7 +29,18 @@ derivative(tree : flow) -> flow {
         Pow(u, v): {
             du = derivative(u);
             dv = derivative(v);
-            Mul(Mul(v, du), Pow(u, Sub(v, Int(1))));
+            if(isVar(v)){
+                Mul(Mul(dv, Ln(u)), Pow(u, v));
+            } else{
+                Mul(Mul(v, du), Pow(u, Sub(v, Int(1))));
+            }
         } 
+    }
+}
+
+isVar(e : flow) -> bool {
+    switch(e){
+        Var(e1): true;
+        default: false;
     }
 }

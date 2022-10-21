@@ -4,6 +4,7 @@ import material/material;
 import mtk_labs/block2/simplifier;
 import mtk_labs/block2/exps;      
 import mtk_labs/block2/derivative;  
+import mtk_labs/block2/rpn;
 
 lingoGrammarOp : ref Maybe<[PegOp]> = ref None();
 lingoGrammar(){
@@ -42,7 +43,7 @@ evaluate(tree : flow) -> double{
         Sub(e1, e2): evaluate(e1) - evaluate(e2); 
         Double(d): d;
         Neg(e): -evaluate(e);
-        ln(e): log(evaluate(e));
+        Ln(e): log(evaluate(e));
     }
 }
 
@@ -62,22 +63,28 @@ main(){
     println(expAst); 
 
     //6 task
-    println("AST TO STRING: " + astToStr(expAst));
+    //println("\nAST TO STRING: " + astToStr(expAst));
 
     //7 task
-    value = evaluate(expAst);
-    println("VALUE = " + d2s(value));
+    //value = evaluate(expAst);
+    //println("\nVALUE = " + d2s(value));
 
     //10 task
     simpleAst = simpleExp(expAst);
-    print("SIMPLIFIED AST: ");
+    print("\nSIMPLIFIED AST: ");
     println(simpleAst);
     println("SIMPLIFIED EXP: " + astToStr(simpleAst));
 
+    //8 task 
+    rpnString = expToRpn(simpleAst);
+    normalExp = rpnToExp(rpnString);
+    println("\nRPN EXP: " + rpnString);
+    println("FROM RPN TO EXP: " + normalExp);
+
     //11 task;
-    diffAst = derivative(expAst);
+    diffAst = derivative(simpleAst);
     simpleDifAst = simpleExp(diffAst);
-    print("DERIVATIVE AST: ");
+    print("\nDERIVATIVE AST: ");
     println(simpleDifAst);
     println("DERIVATIVE STR: " + astToStr(simpleDifAst));
 
