@@ -1,0 +1,26 @@
+export{
+    Programm : (d: [Declare], a: [MarkedOperator]);
+    
+    Declare : (v: Var, t: Type);
+
+    MarkedOperator ::= Assign, Condition;
+        Assign : (m: Mark, v: Var, e: Exp, ms: [Mark]);
+        Condition : (m: Mark, t: Test, m1: [Mark], m2: [Mark]);
+
+    Test : (op: string, e1: Exp, e2: Exp);
+
+    Type ::= IntType, ArrayType;
+        IntType : ();
+        ArrayType : (t1: Type, t2: Type);
+
+    Exp ::= Operand, ArithmOp, App, Upd;
+        ArithmOp : (op: string, e1: Exp, e2: Exp);
+        App : (arr: Exp, ind: Exp);
+        Upd : (arr: Exp, ind: Exp, val: Exp);
+
+    Mark : (m: int);
+
+    Operand ::= Var, Const;
+        Var : (v: string);
+        Const : (c: int);
+}

@@ -1,0 +1,8 @@
+VAR a : INT;
+VAR arr : (INT ARRAY OF INT);
+VAR b : INT;
+
+1: a :=2 goto {2}
+2: b :=10 goto {4}
+4: (b<2)? then {1} else {5}
+5: b:=1 goto {}
