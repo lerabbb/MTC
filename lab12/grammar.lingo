@@ -1,0 +1,55 @@
+programm = ws declaration*:d ws body*:a ws { Programm(:d, :a) };
+body = assign:a {:a} | test:a {:a} | seq_exec:a {:a} | select_exec:a {:a} | iter_exec:a {:a};
+ 
+
+
+//----------main cmds----------
+
+seq_exec = ws "(" ws body:a ws ";" ws body:b ws ")" ws { SeqExec(:a, :b) };
+select_exec = ws "(" ws body:a ws "U" ws body:b ws ")" ws { SelectExec(:a, :b) };
+iter_exec = ws "(" ws body:a ws ")" ws "*" ws { IterExec(:a) };
+
+declaration = ws "VAR" ws var:v ws ":" ws type:t ws ";" ws { Declare(:v, :t) };
+assign = ws var:v ws ":=" exp:e ";" ws { Assign(:v, :e) };
+test = ws exp:e1 ws rel_symb$op ws operand:e2 ws "?" ws { Test($op, :e1, :e2) };
+
+
+
+//----------types----------
+
+type = int | array;
+int = "INT" ws { IntType() };
+array = "(" ws type:t1 ws "ARRAY OF" ws type:t2 ws ")"{ ArrayType(:t1, :t2) };
+
+
+
+//----------expressions----------
+
+exp = operand | arithm_exp | app | upd;
+
+arithm_exp = ws "(" ws exp:e1 ws oper_symb $op ws exp:e2 ws ")" ws {ArithmOp($op, :e1, :e2)};
+app = ws "APP" ws "(" ws exp:arr ws "," ws exp:ind ws ")" ws { App(:arr, :ind) };
+upd = ws "UPD" ws "(" ws exp:arr ws "," ws exp:ind ws "," ws exp:val ws ")" ws { Upd(:arr, :ind, :val) };
+
+
+//----------operations----------
+
+oper_symb = "+" | "-" | "*" | "/";
+rel_symb = "<" | ">" | "<=" | ">=" | "==" | "!=";
+
+
+
+//----------operands----------
+
+operand = var | const;
+var = (char+ digit*) $c { Var($c) };
+const = digit+ $d { Const(s2i($d)) };
+
+
+
+//----------auxilary definitions----------
+
+digit = '0'-'9';
+char = 'a' - 'z' | 'A' - 'Z';
+ws = s*;
+s = " " | "\n" | "\t" | "\r";

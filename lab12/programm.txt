@@ -1,0 +1,7 @@
+VAR a : INT;
+VAR arr : (INT ARRAY OF INT);
+
+a:=2;
+b:= (2/3);
+arr := UPD(2, 0, (a*10));
+(a>5? U a==2?)

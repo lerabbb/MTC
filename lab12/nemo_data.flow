@@ -1,0 +1,25 @@
+export{
+    Programm : (d: [Declare], b: [Body]);
+    
+    Declare : (v: Var, t: Type);
+
+    Body ::= Assign, Test, SeqExec, SelectExec, IterExec;
+        Assign : (v: Var, e: Exp);
+        Test : (op: string, e1: Exp, e2: Exp);
+        SeqExec : (a: Body, b: Body);
+        SelectExec : (a: Body, b: Body);
+        IterExec : (a: Body);
+
+    Type ::= IntType, ArrayType;
+        IntType : ();
+        ArrayType : (t1: Type, t2: Type);
+
+    Exp ::= Operand, ArithmOp, App, Upd;
+        ArithmOp : (op: string, e1: Exp, e2: Exp);
+        App : (arr: Exp, ind: Exp);
+        Upd : (arr: Exp, ind: Exp, val: Exp);
+
+    Operand ::= Var, Const;
+    Var : (v: string);
+    Const : (c: int);
+}

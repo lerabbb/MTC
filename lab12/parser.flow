@@ -1,0 +1,15 @@
+import lingo/pegcode/driver;
+import mtk_labs/lab12/nemo_data;
+
+export{
+    parse(code : string) -> Programm;
+}
+
+lingoGrammarOp : ref Maybe<[PegOp]> = ref None();
+lingoGrammar(){
+    onlyOnce(lingoGrammarOp, \ -> compilePegGrammar("#include mtk_labs/lab12/grammar.lingo"));
+}
+
+parse(code : string) -> Programm{
+    parsic(lingoGrammar(), code, defaultPegActions)
+}

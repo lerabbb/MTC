@@ -1,0 +1,11 @@
+import mtk_labs/lab12/parser;
+import mtk_labs/lab12/nemo_data;
+import material/material;
+
+main(){
+    code = getFileContent("mtk_labs/lab12/programm.txt");
+    result = parse(code);
+    println("NeMo programm:");
+    println(result);
+    quit(0);
+}
