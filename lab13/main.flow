@@ -1,14 +1,13 @@
 import mtk_labs/lab13/parser;
 import mtk_labs/lab13/vm_data;
+import mtk_labs/lab13/executor;
 import material/material;
-
-
-//поменять название папки на lab13 и везде изменить название
 
 main(){
     code = getFileContent("mtk_labs/lab13/programm.txt");
-    result = parse(code);
+    prog = parse(code);
     println("NeMo programm:");
-    println(result);
+    println(prog);
+    executeProgramm(prog);
     quit(0);
 }

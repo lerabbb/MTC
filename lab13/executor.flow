@@ -1,0 +1,432 @@
+import ds/set;
+import mtk_labs/lab13/vm_data;
+
+export{ 
+    executeProgramm(prog : Programm) -> [Position];
+}
+
+createVarTree(vars: [Declare]) -> Tree<string, Value> {
+    fold(vars, makeTree(), \acc, v ->{
+        switch (lookupTree(acc, v.name)) {
+			Some(res): {
+                println("Variable " + v.name + " has been already declared");
+                acc;
+            };  
+			None(): {
+                switch(v.type){
+                    ArrayType(t1, t2): setTree(acc, v.name, ArrayValue(makeTree()));
+                    IntType(): setTree(acc, v.name, IntValue(0));
+                }
+            }
+		}
+    });
+}
+createOperatorTree(lines: [VmLine]) -> Tree<Mark, Operator> {
+    fold(lines, makeTree(), \tree, line ->{
+        setTree(tree, line.mark, line.operator);
+    });
+}
+
+validateType(exp:Exp, vars: Tree<string, Value>) -> int {
+    switch(exp) {
+        ArithmOp(op, e1, e2): {
+            ve1 = validateType(e1, vars);
+            ve2 = validateType(e2, vars);
+            if(ve1 == 0 && ve2 == 0){
+                0;
+            } else{
+                println("Error: invalid type in arithmetic operation");
+                -2;
+            }
+        }
+        App(arr, ind): {
+            varr = validateType(arr, vars);
+            vind = validateType(ind, vars);
+            if(varr >= 1 && vind == 0){
+                -1;
+            } else{
+                println("Error: invalid type in function app()");
+                -2;
+            }
+        }
+        Upd(arr, ind, val): {
+            varr = validateType(arr, vars);
+            vind = validateType(ind, vars);
+            vval = validateType(val, vars);
+            if(varr - 1 == vval && vind == 0){
+                -1;
+            } else{
+                println("Error: invalid type in function upd()");
+                -2;
+            }
+        }
+        Var(v): {
+            var = lookupTree(vars, v);
+            switch(var){
+                Some(foundVar): {
+                    switch(foundVar){
+                        IntValue(i): 0;
+                        ArrayValue(arr): 1;
+                    }
+                }
+                None():{
+                    println("Error: No such variable in declarations: " + v);
+                    -2;
+                }
+            }
+        }
+        Const(c): 0;
+    }
+}
+validateOther(exp : Exp, vars : Tree<string, Value>) -> bool {
+    switch(exp){
+        App(arr, ind): {
+            array = execExp(arr, vars);
+            index = execExp(ind, vars);
+            isVmArray(array) && isInt(index);
+        }
+        Upd(arr, ind, val): {
+            array = execExp(arr, vars);
+            index = execExp(ind, vars);
+            if(isVmArray(array) && isInt(index)){
+                value = execExp(val, vars);
+                switch(value) {
+                    Some(resVal): true;
+                    None(): false;
+                }
+            }else{
+                false;
+            }
+        }
+        ArithmOp(op, e1, e2): {
+            ee1 = execExp(e1, vars);
+            ee2 = execExp(e2, vars);
+            isInt(ee1) && isInt(ee2);                 
+        }
+        Const(c): true;
+        Var(v):{
+            var = lookupTree(vars, v);
+            isVar(var);
+        }
+    }
+}
+validateExp(exp : Exp, vars : Tree<string, Value>) -> bool {
+    switch(exp){
+        ArithmOp(op, e1, e2):{
+            ve1 = validateExp(e1, vars);
+            ve2 = validateExp(e2, vars);
+            typeE1 = validateType(e1, vars);
+            typeE2 = validateType(e2, vars);
+            if(typeE1 == typeE2){
+                if(op == "+" || op == "-" || op == "/" || op == "*" || op == "%"){
+                    ve1 && ve2 && true;
+                } else{
+                    println("Error: invalid operation symbol in arithmetic operation");
+                    false;
+                }
+            } else{
+                println("Error: invalid types in arithmetic operation");
+                false;
+            }
+        }
+        App(arr, ind): {
+            varr = validateExp(arr, vars);
+            vind = validateExp(ind, vars);
+            true && varr && vind && validateOther(exp, vars);
+        }
+        Upd(arr, ind, val): {
+            varr = validateExp(arr, vars);
+            vind = validateExp(ind, vars);
+            vval = validateExp(val, vars);
+            true && varr && vind && vval && validateOther(exp, vars);
+        }
+        Var(v): {
+            var = lookupTree(vars, v);
+            isVar(var);
+        }
+        Const(c):{
+            true;
+        }
+    }
+}
+validateTest(test: Test, vars: Tree<string, Value>) -> bool{
+    ve1 = validateExp(test.e1, vars);
+    ve2 = validateExp(test.e2, vars);
+    if(test.op == "==" || test.op == "<=" || test.op == ">=" || test.op == "<" || test.op == ">" || test.op == "!="){
+        ve1 && ve2 && true;
+    } else{
+        println("Error: invalid relation symbol in condition");
+        false
+    }
+}
+validateOperators(lines: [VmLine], vars: Tree<string, Value>) -> bool{
+    fold(lines, true, \acc, elem -> {
+        switch(elem){
+            VmLine(mark, op):{
+                switch(op){
+                    Assign(var, e, ms): acc && validateExp(var, vars) && validateExp(e, vars);
+                    Condition(test, ms1, ms2): acc && validateTest(test, vars);
+                    Print(e, ms): acc && validateExp(e, vars);
+                }
+            }
+        }
+    });
+}
+
+evaluateAritm(op : string, l: Value, r: Value) -> Maybe<int>{
+    switch(l){
+        IntValue(left):{
+            switch(r){
+                IntValue(right): {
+                    if(op == "+") { Some(left + right); }
+                    else if(op == "-") { Some(left - right); }
+                    else if(op == "*") { Some(left * right); }
+                    else if(op == "/") { Some(left / right); }
+                    else if(op == "%") { Some(left % right); }
+                    else {
+                        println("Error: invalid operation in arithmetic operation");
+                        None();
+                    }
+                }
+                ArrayValue(arr): None();
+            }
+        }
+        ArrayValue(arr): None();
+    }
+}
+
+execExp(exp: Exp, vars: Tree <string, Value>) -> Maybe<Value> {
+    switch(exp){
+        ArithmOp(op, e1, e2):{
+            ne1 = execExp(e1, vars);
+            ne2 = execExp(e2, vars);
+            switch(ne1){
+                Some(l):{
+                    switch(ne2){
+                        Some(r):{
+                            switch(evaluateAritm(op, l, r)){
+                                Some(result): Some(IntValue(result));
+                                None(): None();
+                            }
+                        }
+                        None(): None();
+                    }
+                }
+                None(): None();
+            }
+        }
+        App(arr, ind):{
+            narr = execExp(arr, vars);
+            nind = execExp(ind, vars);
+            switch(narr){
+                Some(resArr):{
+                    switch(resArr){
+                        ArrayValue(array):{
+                            switch(nind){
+                                Some(resInd): {
+                                    switch(resInd){
+                                        IntValue(k): {
+                                            if(k<0){
+                                                println("Error: invalid index");
+                                                None();
+                                            } else{
+                                                lookupTree(array, k);
+                                            }                                        
+                                        }                                           
+                                        ArrayValue(a): None();
+                                    }
+                                }
+                                None(): None();
+                            }
+                        }
+                        IntValue(c): None();
+                    }
+                }
+                None(): None();
+            }
+        }
+        Upd(arr, ind, val):{
+            narr = execExp(arr, vars);
+            switch(narr){
+                Some(resArr):{
+                    switch(resArr){
+                        ArrayValue(array):{
+                            nind = execExp(ind, vars);
+                            switch(nind){
+                                Some(resInd):{
+                                    switch(resInd){
+                                        IntValue(k):{
+                                            nval = execExp(val, vars);
+                                            switch(nval){
+                                                Some(resVal):{
+                                                    if(k<0){
+                                                        println("Error: invalid index");
+                                                        None();
+                                                    } else{
+                                                        elem = lookupTree(array, k);
+                                                        switch(elem){
+                                                            Some(resElem):{
+                                                                clearedArr = removeFromTree(array, k);
+                                                                pushedArr = setTree(clearedArr, k, resVal);
+                                                                Some(ArrayValue(pushedArr));
+                                                            }
+                                                            None(): None();
+                                                        }
+                                                    }                                                    
+                                                }
+                                                None(): None();
+                                            }
+                                        }
+                                        ArrayValue(a): None();
+                                    }
+                                }
+                                None(): None();
+                                
+                            }
+                        }   
+                        IntValue(i): None();
+                    }
+                }
+                None():None();
+            }          
+        }
+        Var(v): lookupTree(vars, v);
+        Const(c): Some(IntValue(c));
+    }
+}
+
+execTest(e1 : Exp, e2: Exp, op:string, vars: Tree<string, Value>) -> Maybe<bool>{
+    ne1 = execExp(e1, vars);
+    ne2 = execExp(e2, vars);
+    if(isInt(ne1) && isInt(ne2)){
+        if(op == "==") { Some(ne1 == ne2); }
+        else if(op == "<=") { Some(ne1 <= ne2); }
+        else if(op == ">=") { Some(ne1 >= ne2); }
+        else if(op == "<") { Some(ne1 < ne2); }
+        else if(op == ">") { Some(ne1 > ne2); }
+        else if(op == "!=") { Some(ne1!=ne2); }
+        else {
+            println("Error: invalid relation operation");
+            None();
+        }
+    }
+    else{
+        None();
+    }
+}
+
+generateIndexes(n:int) -> [int]{
+    if(n==0){
+        [0];
+    }else{
+        concat(generateIndexes(n-1), [n]);
+    }
+}
+
+printArray(arr: Tree<int, Value>) -> string{
+    len = sizeTree(arr);
+    indexes = generateIndexes(len);
+    fold(indexes, "[", \acc, i->{
+        val = lookupTree(arr, i);
+        switch(val){
+            Some(res):{
+                switch(res){
+                    ArrayValue(array):{
+                        if(i == len-1){
+                            acc + printArray(array) + "]";
+                        }
+                        else{
+                            acc + printArray(array) + ",";
+                        }
+                    }
+                    IntValue(c):{
+                        if(i == len-1){
+                            acc + i2s(i) + "]";
+                        }
+                        else{
+                            acc + i2s(i) + ",";
+                        }
+                    }
+                }
+            }
+            None(): "";
+        }
+    }) 
+}
+myPrint(exp : Exp, vars : Tree<string, Value>) -> void{
+    switch(execExp(exp, vars)){
+        Some(res):{
+            switch(res){
+                IntValue(i): println(i2s(i));
+                ArrayValue(arr): println(printArray(arr));
+            }
+        }
+        None(): println("Programm failed");
+    }
+}
+getPositions(marks:[Mark], vars : Tree<string, Value>) -> [Position]{
+    fold(marks, [], \positions, val ->{
+        concat(positions, [Position(val, vars)]);
+    });
+}
+
+execute(pos: Position, operators: Tree<Mark, Operator>) -> [Position]{
+    switch(lookupTree(operators, pos.mark)){
+        Some(cmd):{
+            switch(cmd){
+                Assign(var, e, ms):{
+                    switch(execExp(e, pos.vars)){
+                        Some(res):{
+                            vars = setTree(pos.vars, var.name, res);
+                            getPositions(ms, vars);
+                        }   
+                        None(): [];
+                    }
+                }
+                Condition(test, ms1, ms2):{
+                    switch(execTest(test.e1, test.e2, test.op, pos.vars)){
+                        Some(res):{
+                            if(res){
+                                getPositions(ms1, pos.vars);
+                            } else{
+                                getPositions(ms2, pos.vars);
+                            }
+                        }   
+                        None(): [];
+                    }
+                }
+                Print(e, ms):{
+                    myPrint(e, pos.vars);
+                    getPositions(ms, pos.vars);
+                }
+            }
+        }
+        None(): [];
+    }
+}
+
+run(startPosition: Position, operators: Tree<Mark, Operator>) -> [Position] {
+    for([startPosition], \pos -> length(pos) > 0, \prev -> {
+        fold(prev, [], \acc, pos -> {
+            concat(acc, execute(pos, operators));            
+        });
+    });
+}
+
+executeProgramm(prog : Programm) -> [Position]{
+    vars = createVarTree(prog.vars);
+    operators = createOperatorTree(prog.lines);
+
+    println("Validating code...");
+    if(validateOperators(prog.lines, vars)){
+        println("Start running your programm...");
+        startPosition = Position(Mark(0), vars);
+        exe = run(startPosition, operators);
+        println("Programm stopped");
+        exe;
+    }
+    else{
+        println("Impossible to run vm programm");
+        [];
+    } 
+}

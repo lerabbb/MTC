@@ -1,26 +1,71 @@
-export{
-    Programm : (d: [Declare], a: [MarkedOperator]);
-    
-    Declare : (v: Var, t: Type);
+import material/material;
 
-    MarkedOperator ::= Assign, Condition;
-        Assign : (m: Mark, v: Var, e: Exp, ms: [Mark]);
-        Condition : (m: Mark, t: Test, m1: [Mark], m2: [Mark]);
+export{   
+
+    Programm : (vars: [Declare], lines: [VmLine]);
+    
+    Declare : (name: string, type: Type);
+
+    VmLine(mark: Mark, operator: Operator);
+    Operator ::= Assign, Condition, Print;
+        Assign : (var: Var, exp: Exp, markSet: [Mark]);
+        Condition : (test: Test, ms1: [Mark], ms2: [Mark]);
+        Print : (e: Exp, markSet: [Mark]);
 
     Test : (op: string, e1: Exp, e2: Exp);
 
     Type ::= IntType, ArrayType;
         IntType : ();
-        ArrayType : (t1: Type, t2: Type);
+        ArrayType : (type1: Type, type2: Type);
 
-    Exp ::= Operand, ArithmOp, App, Upd;
+    Exp ::= Var, Const, ArithmOp, App, Upd;
         ArithmOp : (op: string, e1: Exp, e2: Exp);
         App : (arr: Exp, ind: Exp);
         Upd : (arr: Exp, ind: Exp, val: Exp);
+        Var : (name: string);
+        Const : (c: int);
 
     Mark : (m: int);
 
-    Operand ::= Var, Const;
-        Var : (v: string);
-        Const : (c: int);
+    Position(mark: Mark, vars: Tree<string, Value>);
+    Value ::= ArrayValue, IntValue;
+        ArrayValue(arr: Tree<int, Value>);
+        IntValue(i: int);
+
+    isVar(var : Maybe<Value>) -> bool;
+    isInt(exp: Maybe<Value>) -> bool;
+    isVmArray(exp: Maybe<Value>) -> bool;
+}
+
+
+isVar(var : Maybe<Value>) -> bool{
+    switch(var) {
+        Some(resVar): true;
+        None(): {
+            println("Error: unlnown variable");
+            false;
+        }
+    }
+}
+isInt(exp: Maybe<Value>) -> bool {
+    switch(exp){
+        Some(res):{
+            switch(res){
+                IntValue(i): true;
+                ArrayValue(a): false;
+            }
+        }
+        None(): false;
+    }
+}
+isVmArray(exp: Maybe<Value>) -> bool {
+    switch(exp){
+        Some(res):{
+            switch(res){
+                ArrayValue(a): true;
+                IntValue(i): false;                
+            }
+        }
+        None(): false;
+    }
 }

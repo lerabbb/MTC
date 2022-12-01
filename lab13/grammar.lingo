@@ -1,16 +1,17 @@
-programm = ws declaration*:d ws operator*:op ws { Programm(:d, :op) };
+programm = ws declaration*:d ws line*:l ws { Programm(:d, :l) };
 
 
 //------operators----------
 
-operator = assign | condition;
+declaration = ws "VAR" ws char+$c ws ":" ws type:t ws ";" ws { Declare($c, :t) };
+line = ws mark:m ws ":" ws operator:op ws { VmLine(:m, :op) };
 
-assign = mark:m ws ":" ws var:v ws ":=" exp:e "goto" ws "{" ws mark*:ms ws "}" ws { Assign(:m, :v, :e, :ms) };
-condition = mark:m ws ":" ws test:t ws "then" ws "{" ws mark*:ms1 ws "}" ws "else" ws "{" ws mark*:ms2 ws "}" ws { Condition(:m, :t, :ms1, :ms2) };
+operator = assign | condition | print;
+print = ws "print" ws "(" ws exp:e ws ")" ws "goto" ws "{" ws mark*:ms ws "}" ws { Print(:e, :ms) };
+assign = ws char+$v ws ":=" ws exp:e ws "goto" ws "{" ws mark*:ms ws "}" ws { Assign(Var($v), :e, :ms) };
+condition = ws test:t ws "then" ws "{" ws mark*:ms1 ws "}" ws "else" ws "{" ws mark*:ms2 ws "}" ws { Condition(:t, :ms1, :ms2) };
 
-test = ws "(" exp:e1 ws rel_symb$op ws operand:e2 ws ")" ws "?" ws { Test($op, :e1, :e2) };
-declaration = ws "VAR" ws var:v ws ":" ws type:t ws ";" ws { Declare(:v, :t) };
-
+test = ws "if" ws "(" ws exp:e1 ws rel_symb$op ws exp:e2 ws ")" ws { Test($op, :e1, :e2) };
 
 
 //----------types----------
@@ -23,34 +24,25 @@ array = "(" ws type:t1 ws "ARRAY OF" ws type:t2 ws ")" { ArrayType(:t1, :t2) };
 
 //----------expressions----------
 
-exp = ws operand:a ws {:a} | arithm_exp | app | upd;
+exp = var | const | arithm_exp | app | upd ;
 
-arithm_exp = ws "(" exp:e1 oper_symb$op exp:e2 ")" ws { ArithmOp($op, :e1, :e2) };
-app = ws "APP" ws "(" exp:arr "," exp:ind ")" ws { App(:arr, :ind) };
-upd = ws "UPD" ws "(" exp:arr "," exp:ind "," exp:val ")" ws { Upd(:arr, :ind, :val) };
+arithm_exp = ws "(" ws exp:e1 ws oper_symb$op ws exp:e2 ws ")" ws { ArithmOp($op, :e1, :e2) };
+app = ws "APP" ws "("exp:arr "," exp:ind ")" ws { App(:arr, :ind) };
+upd = ws "UPD" ws "(" ws exp:arr ws "," ws exp:ind ws "," ws exp:val ws ")" ws { Upd(:arr, :ind, :val) };
+var = ws (char+)$c ws { Var($c) };
+const = ws (digit+)$d ws { Const(s2i($d)) };
 
-
-
-//----------operations----------
-
-oper_symb = "+" | "-" | "*" | "/";
-rel_symb = "<" | ">" | "<=" | ">=" | "==" | "!=";
-
-
-
-//----------operands----------
-
-operand = var | const;
-var = (char+ digit*) $c { Var($c) };
-const = digit+ $d { Const(s2i($d)) };
-
-mark = (digit+)$d { Mark(s2i($d)) };
 
 
 
 //----------auxilary definitions----------
 
+mark = (digit+)$d ","? ws { Mark(s2i($d)) };
+
+oper_symb = "+" | "-" | "*" | "/" | "%";
+rel_symb = "<" | ">" | "<=" | ">=" | "==" | "!=";
+
 digit = '0'-'9';
-char = 'a' - 'z' | 'A' - 'Z';
+char = 'a' - 'z';
 ws = s*;
 s = " " | "\n" | "\t" | "\r";

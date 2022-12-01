@@ -2,7 +2,10 @@ VAR a : INT;
 VAR arr : (INT ARRAY OF INT);
 VAR b : INT;
 
-1: a :=2 goto {2}
-2: b :=10 goto {4}
-4: (b<2)? then {1} else {5}
-5: b:=1 goto {}
+0: a:=2 goto{2}
+2: b:=(a*3) goto {3}
+3: if(b==6) then{4} else {5}
+4: print(b) goto {6,7}
+5: print(a) goto {6}
+6: a := 0 goto {}
+7: a :=5 goto {}
